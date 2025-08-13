@@ -3,8 +3,9 @@
 This project implements a robust and efficient **Buffer Pool Manager** for database systems, comprising three major components:
 
 1. [LRU-K Replacer](#1-lru-k-replacer)
-2. [Buffer Pool Manager](#2-buffer-pool-manager)
-3. [Disk Scheduler](#3-disk-scheduler)
+2. [Disk Scheduler](#2-disk-scheduler)
+3. [Buffer Pool Manager](#3-buffer-pool-manager)
+
 
 Each component is designed with concurrency, performance, and correctness in mind. Below is a breakdown of the functionality and design rationale of each module.
 
@@ -33,8 +34,11 @@ The **LRU-K (Least Recently Used - K)** replacer is an advanced page replacement
 
 ---
 
-## 2. Buffer Pool Manager
+## 2. Disk Scheduler
+ongoing figuring out the design
 
+
+## 3. Buffer Pool Manager
 The **Buffer Pool Manager** acts as an intermediary between memory and disk, managing a pool of frames (in-memory pages) and coordinating:
 ongoing
 
@@ -42,5 +46,3 @@ why we need a bf manager in first place why not a mmap like ina n os what about 
 
 ---
 
-## 3. Disk Scheduler
-ongoing figuring out the design 
