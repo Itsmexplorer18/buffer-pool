@@ -84,7 +84,5 @@ This design enables **asynchronous, thread-safe, and ordered** disk access witho
 The **Buffer Pool Manager** acts as an intermediary between memory and disk, managing a pool of frames (in-memory pages) and coordinating:
 ongoing
 
-why we need a bf manager in first place why not a mmap like ina n os what about the os mmap
-
 ---
 
