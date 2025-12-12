@@ -46,7 +46,7 @@ public:
         frame_id_t victim_frame = INVALID_FRAME_ID;
         size_t max_backward_distance = 0;
         timestamp_t earliest_overall_access = current_timestamp_.load() + 1; // Start with impossible future time
-        bool found_finite_distance = false;
+        bool found_infinite_distance = false;
         
         // Find frame with maximum backward k-distance
         for (frame_id_t frame_id : evictable_frames_) {
@@ -54,20 +54,18 @@ public:
             
             if (distance == SIZE_MAX) {
                 // Frame has infinite backward k-distance
-                if (!found_finite_distance) {
-                    // Only consider frames with infinite distance if no finite distance found
+                found_infinite_distance=true;
                     timestamp_t earliest_access = GetEarliestAccess(frame_id);
                     if (victim_frame == INVALID_FRAME_ID || earliest_access < earliest_overall_access) {
                         victim_frame = frame_id;
                         earliest_overall_access = earliest_access;
                     }
-                }
-            } else {
+            }
+            else if(!found_infinite_distance){
                 // Frame has finite backward k-distance
-                if (!found_finite_distance || distance > max_backward_distance) {
+                if (victim_frame==INVALID_FRAME_ID || distance > max_backward_distance) {
                     victim_frame = frame_id;
                     max_backward_distance = distance;
-                    found_finite_distance = true;
                 }
             }
         }
