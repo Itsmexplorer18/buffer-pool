@@ -72,3 +72,55 @@ public:
         return frame_ ? frame_->page_id_ : INVALID_PAGE_ID;
     }
 };
+
+class WritePageGuard {
+private:
+    BufferPoolManager* bpm_;
+    FrameHeader* frame_;
+    
+public:
+    WritePageGuard() : bpm_(nullptr), frame_(nullptr) {}
+    
+    WritePageGuard(BufferPoolManager* bpm, FrameHeader* frame) 
+        : bpm_(bpm), frame_(frame) {}
+    
+    WritePageGuard(const WritePageGuard&) = delete;
+    WritePageGuard& operator=(const WritePageGuard&) = delete;
+    
+    WritePageGuard(WritePageGuard&& other) noexcept 
+        : bpm_(other.bpm_), frame_(other.frame_) {
+        other.bpm_ = nullptr;
+        other.frame_ = nullptr;
+    }
+    
+    WritePageGuard& operator=(WritePageGuard&& other) noexcept {
+        if (this != &other) {
+            Drop();
+            bpm_ = other.bpm_;
+            frame_ = other.frame_;
+            other.bpm_ = nullptr;
+            other.frame_ = nullptr;
+        }
+        return *this;
+    }
+    
+    ~WritePageGuard() { Drop(); }
+    
+    void Drop();
+    
+    char* GetDataMut() {
+        if (frame_) {
+            frame_->is_dirty_ = true;
+        }
+        return frame_ ? frame_->GetData() : nullptr;
+    }
+    
+    const char* GetData() const {
+        return frame_ ? frame_->GetData() : nullptr;
+    }
+    
+    page_id_t GetPageId() const {
+        return frame_ ? frame_->page_id_ : INVALID_PAGE_ID;
+    }
+};
+
