@@ -380,7 +380,7 @@ void ReadPageGuard::Drop() {
 }
 void WritePageGuard::Drop() {
     if (bpm_ && frame_) {
-        bpm_->UnpinPage(frame_->page_id_, frame_->is_dirty_);
+        bpm_->UnpinPage(frame_->page_id_, true);
         bpm_ = nullptr;
         frame_ = nullptr;
     }
