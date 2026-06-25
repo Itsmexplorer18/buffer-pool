@@ -9,7 +9,7 @@ public:
     page_id_t page_id_ = INVALID_PAGE_ID;
     std::atomic<int> pin_count_ = 0;
     bool is_dirty_ = false;
-    std::mutex latch_;
+    std::shared_mutex latch_;
     
 private:
     char data_[PAGE_SIZE];
@@ -38,7 +38,9 @@ public:
     ReadPageGuard() : bpm_(nullptr), frame_(nullptr) {}
     
     ReadPageGuard(BufferPoolManager* bpm, FrameHeader* frame) 
-        : bpm_(bpm), frame_(frame) {}
+        : bpm_(bpm), frame_(frame) {
+         frame_->latch_.lock_shared();
+        }
     
     ReadPageGuard(const ReadPageGuard&) = delete;
     ReadPageGuard& operator=(const ReadPageGuard&) = delete;
@@ -82,7 +84,9 @@ public:
     WritePageGuard() : bpm_(nullptr), frame_(nullptr) {}
     
     WritePageGuard(BufferPoolManager* bpm, FrameHeader* frame) 
-        : bpm_(bpm), frame_(frame) {}
+        : bpm_(bpm), frame_(frame) {
+           frame_->latch_.lock();         // exclusive, blocks all readers and writers
+        }
     
     WritePageGuard(const WritePageGuard&) = delete;
     WritePageGuard& operator=(const WritePageGuard&) = delete;
@@ -378,6 +382,7 @@ public:
 
 void ReadPageGuard::Drop() {
     if (bpm_ && frame_) {
+                 frame_->latch_.unlock_shared();
         bpm_->UnpinPage(frame_->page_id_, false);
         bpm_ = nullptr;
         frame_ = nullptr;
@@ -385,6 +390,7 @@ void ReadPageGuard::Drop() {
 }
 void WritePageGuard::Drop() {
     if (bpm_ && frame_) {
+          frame_->latch_.unlock();
         bpm_->UnpinPage(frame_->page_id_, true);
         bpm_ = nullptr;
         frame_ = nullptr;
