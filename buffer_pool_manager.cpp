@@ -310,6 +310,10 @@ public:
         }
         
         FrameHeader& frame = frames_[frame_id];
+     
+       if (frame.pin_count_ > 0) {
+        return std::nullopt;
+    }
         frame.pin_count_++;
         replacer_->RecordAccess(frame_id);
         replacer_->SetEvictable(frame_id, false);
@@ -363,6 +367,7 @@ public:
             if (is_dirty) {
                 frame.is_dirty_ = true;
             }
+            
             
             if (frame.pin_count_ == 0) {
                 replacer_->SetEvictable(frame_id, true);
