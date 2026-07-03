@@ -25,7 +25,7 @@ private:
     timestamp_t GetEarliestAccess(frame_id_t frame_id) const {
         auto it = access_history_.find(frame_id);
         if (it == access_history_.end() || it->second.empty()) {
-            return current_timestamp_.load(); // Return current time if no history
+            return 0; // Return current time if no history
         }
         return it->second.front();
     }
@@ -74,7 +74,9 @@ public:
             evictable_frames_.erase(victim_frame);
             access_history_.erase(victim_frame);
         }
-        
+        if (victim_frame == INVALID_FRAME_ID) {
+              return std::nullopt;
+            }
         return victim_frame;
     }
     
