@@ -207,24 +207,36 @@ public:
     }
     
     bool DeletePage(page_id_t page_id) {
-        std::lock_guard<std::mutex> lock(latch_);
-        
-        auto it = page_table_.find(page_id);
-        if (it == page_table_.end()) {
-            return true; // Page not in buffer pool
-        }
-        
-        frame_id_t frame_id = it->second;
-        FrameHeader& frame = frames_[frame_id];
-        if (frame.pin_count_ > 0) {
-            return false; // Page is pinned
-        }        
-        page_table_.erase(page_id);
-        replacer_->Remove(frame_id);        
-        frame.ResetData();
-        free_list_.push(frame_id);        
+    std::lock_guard<std::mutex> lock(latch_);
+
+    auto it = page_table_.find(page_id);
+    if (it == page_table_.end()) {
         return true;
     }
+
+    frame_id_t frame_id = it->second;
+    FrameHeader& frame = frames_[frame_id];
+
+    if (frame.pin_count_ > 0) {
+        return false;
+    }
+
+    // NOTE: no WAL in this implementation so flush dirty data
+    // before discarding to prevent data loss on deletion.
+    // If extended with a transaction manager and WAL, remove
+    // this flush — WAL log record handles crash recovery instead.
+     //right not delete oage is an public api not being called by any internal code might be used to extend code for another levels 
+    if (frame.is_dirty_) {
+        FlushFrame(frame_id);
+    }
+
+    page_table_.erase(page_id);
+    replacer_->Remove(frame_id);
+    frame.ResetData();
+    free_list_.push(frame_id);
+
+    return true;
+}
     
     std::optional<ReadPageGuard> CheckedReadPage(page_id_t page_id) {
         std::lock_guard<std::mutex> lock(latch_);
