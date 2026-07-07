@@ -239,6 +239,7 @@ public:
 }
     
     std::optional<ReadPageGuard> CheckedReadPage(page_id_t page_id) {
+     {
         std::lock_guard<std::mutex> lock(latch_);
         
         frame_id_t frame_id;
@@ -280,7 +281,7 @@ public:
         frame.pin_count_++;
         replacer_->RecordAccess(frame_id);
         replacer_->SetEvictable(frame_id, false);
-        
+     }     
         return ReadPageGuard(this, &frame);
     }
     
